@@ -1,0 +1,65 @@
+{
+  "name": "@chrillaz/lzy-img",
+  "version": "1.0.0",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "scripts": {
+    "test": "jest --coverage --no-cache",
+    "watch": "babel src --out-dir lib --extensions '.ts,.tsx' --watch",
+    "types": "tsc --declaration --outDir lib/ --emitDeclarationOnly",
+    "build": "babel src --out-dir lib --extensions '.ts,.tsx'",
+    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+    "lint": "tslint -p tsconfig.json",
+    "prepare": "npm run types && npm run build",
+    "prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Chrillaz/lzy-img.git"
+  },
+  "author": "Christoffer Öhman",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Chrillaz/lzy-img/issues"
+  },
+  "homepage": "https://github.com/Chrillaz/lzy-img#readme",
+  "devDependencies": {
+    "@babel/cli": "^7.8.3",
+    "@babel/core": "^7.8.3",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-proposal-object-rest-spread": "^7.8.3",
+    "@babel/preset-env": "^7.8.3",
+    "@babel/preset-typescript": "^7.8.3",
+    "@types/jest": "^24.9.0",
+    "babel-jest": "^24.9.0",
+    "jest": "^24.9.0",
+    "prettier": "^1.19.1",
+    "ts-jest": "^24.3.0",
+    "tslint": "^5.20.1",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.7.5"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.(ts?|tsx?)$": "ts-jest"
+    },
+    "testRegex": "(/src/__tests__/.*|(\\.|/)(test|spec))\\.(ts?|tsx?)$",
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json"
+    ]
+  },
+  "files": [
+    "lib/**/*"
+  ]
+}
