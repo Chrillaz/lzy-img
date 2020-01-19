@@ -1,8 +1,8 @@
 export interface ILazyLoad {
-    debounceTimeout?: boolean;
-   readonly DOMElementList: Element[];
-   scrollSpy?: () => void;
-   readonly selector: string;
+  debounceTimeout?: boolean;
+  readonly DOMElementList: Element[];
+  scrollSpy?: () => void;
+  readonly selector: string;
  }
  
  export default class LazyLoad implements ILazyLoad {
@@ -23,26 +23,26 @@ export interface ILazyLoad {
    }
  
    public loadItem() {
-     if (!this.debounceTimeout) {
-       this.debounceTimeout = !this.debounceTimeout;
-       setTimeout(() => (this.debounceTimeout = !this.debounceTimeout), 300);
+    if (!this.debounceTimeout) {
+      this.debounceTimeout = !this.debounceTimeout;
+      setTimeout(() => (this.debounceTimeout = !this.debounceTimeout), 300);
+    }
  
-       if (document.querySelectorAll(this.selector).length <= 0) {
-         return window.removeEventListener('scroll', this.scrollSpy);
-       }
+    if (document.querySelectorAll(this.selector).length <= 0) {
+      return window.removeEventListener('scroll', this.scrollSpy);
+    }
  
-       if (this.DOMElementList) {
-         [...this.DOMElementList].forEach((item: Element) => {
-           const measures = window.getComputedStyle(item);
-           const x = measures.getPropertyValue('width');
-           const y = measures.getPropertyValue('height');
+    if (this.DOMElementList) {
+      [...this.DOMElementList].forEach((item: Element) => {
+      const measures = window.getComputedStyle(item);
+      const x = measures.getPropertyValue('width');
+      const y = measures.getPropertyValue('height');
  
-           if (this.inViewport(item, parseInt(x, 10), parseInt(y, 10))) {
-             return this.createElement(this.selector, item);
-           }
-         });
-       }
-     }
+        if (this.inViewport(item, parseInt(x, 10), parseInt(y, 10))) {
+          return this.createElement(this.selector, item);
+        }
+      });
+    }
    }
  
    private inViewport(item: Element, x: number, y: number): boolean {
