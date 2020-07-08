@@ -1,84 +1,71 @@
-export interface ILazyLoad {
-  debounceTimeout?: boolean;
-  readonly DOMElementList: Element[];
-  scrollSpy?: () => void;
-  readonly selector: string;
- }
- 
- export default class LazyLoad implements ILazyLoad {
-   public debounceTimeout: boolean = false;
- 
-   public readonly DOMElementList: Element[] = [];
-   
-   public scrollSpy!: () => void;
- 
-   public readonly selector!: string;
- 
-   constructor(init?: Partial<ILazyLoad>) {
-     Object.assign(this, { ...init });
-   }
- 
-   public setScrollSpy(): void {
-     window.addEventListener('scroll', (this.scrollSpy = this.loadItem.bind(this)), { capture: false, passive: true });
-   }
- 
-   public loadItem() {
-     if (!this.debounceTimeout) {
-       this.debounceTimeout = !this.debounceTimeout;
-       setTimeout(() => this.debounceTimeout = !this.debounceTimeout, 300);
- 
-       if (document.querySelectorAll(this.selector).length <= 0) {
-         return window.removeEventListener('scroll', this.scrollSpy);
-       }
- 
-       if (this.DOMElementList) {
-         [...this.DOMElementList].forEach((item: Element) => {
-           const measures = window.getComputedStyle(item);
-           const x = measures.getPropertyValue('width');
-           const y = measures.getPropertyValue('height');
- 
-           if (this.inViewport(item, parseInt(x, 10), parseInt(y, 10))) {
-             return this.createElement(this.selector, item);
-           }
-         });
-       }
-     }
-   }
- 
-   private inViewport(item: Element, x: number, y: number): boolean {
-     const bounding = item.getBoundingClientRect();
-     return (
-       bounding.bottom <= (window.innerHeight + y || document.documentElement.clientHeight + y) &&
-       bounding.right <= (window.innerWidth + x || document.documentElement.clientWidth + x)
-     );
-   }
- 
-   private createElement(id: string | boolean, item: Element): Element | undefined {
-     if (![...item.children].find(child => child.tagName === 'IMG')) {
-       const img: HTMLImageElement = document.createElement('img');
- 
-       if (item.getAttribute('data-srcset')) {
-         img.srcset = item.getAttribute('data-srcset') as string;
-         item.removeAttribute('data-srcset');
-       }
- 
-       if (item.getAttribute('data-sizes')) {
-         img.sizes = item.getAttribute('data-sizes') as string;
-         item.removeAttribute('data-sizes');
-       }
- 
-       if (item.getAttribute('data-src')) {
-         img.src = item.getAttribute('data-src') as string;
-       }
- 
-       if (item.getAttribute('data-alt')) {
-         img.alt = item.getAttribute('data-alt') as string;
-       }
- 
-       item.classList.remove((id as string).replace('.', ''));
- 
-       return item.appendChild(img);
-     }
-   }
- }
- 
+const debounce = <F extends (...args: any[]) => any>(cb: F, waitFor: number): Promise<(...args: Parameters<F>) => ReturnType<F>> => {
+
+  let timeout = 0;
+
+  return new Promise((resolve) => (...args: Parameters<F>) => {
+
+    clearTimeout(timeout);
+    timeout = setTimeout(() => resolve(cb(...args)), waitFor);
+  })
+}
+
+const inViewport = (element: HTMLElement): boolean => {
+
+  const x = element.offsetWidth,
+        y = element.offsetHeight,
+        rect = element.getBoundingClientRect();
+  
+  return (
+    rect.top >= -y 
+    && rect.left >= -x
+    && rect.right <= (window.innerWidth || document.documentElement.clientWidth) + x
+    && rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) + y
+  );
+}
+
+const swapAttributes = (img: HTMLImageElement) => {
+  
+  for (const attr in img.dataset) {
+
+    if (/src|srcset|sizes/.test(img.dataset[attr] as string)) {
+
+      (img as {[key: string]: typeof HTMLImageElement})[attr] = img.dataset[attr];
+      img.removeAttribute('data-' + attr);
+    }
+  }
+}
+
+const imageObserver = (nodeList: HTMLImageElement[]) => nodeList.forEach(img => {
+
+  if (inViewport(img)) {
+
+    swapAttributes(img);
+  }
+})
+
+const checkNativeSupport = () => {
+
+  const nodeList = Array.from(document.querySelectorAll('img')).filter(img => img.nodeName != 'NOSCRIPT');
+
+  if ('loading' in HTMLImageElement.prototype) {
+  
+    nodeList.forEach(img => swapAttributes(img));
+  } else {
+  
+    window.addEventListener('scroll', () => debounce(imageObserver(nodeList), 200), {capture: false, passive: true});
+    
+    imageObserver(nodeList);
+  }
+}
+
+const LazyImage = async (): Promise<void> => await new Promise((resolve) => {
+  
+  if (!/complete|interactive|loaded/.test(document.readyState)) {
+
+    window.addEventListener('DOMContentLoaded', () => resolve(checkNativeSupport()), false);
+  }
+
+  resolve(checkNativeSupport());
+});
+
+export default LazyImage();
