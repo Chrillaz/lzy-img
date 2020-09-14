@@ -28,8 +28,8 @@ const swapAttributes = (img: HTMLImageElement) => {
   for (const attr in img.dataset) {
 
     if (/src|srcset|sizes/.test(img.dataset[attr] as string)) {
-
-      (img as {[key: string]: typeof HTMLImageElement})[attr] = img.dataset[attr];
+      
+      (img as {[key: string]: any})[attr] = img.dataset[attr];
       img.removeAttribute('data-' + attr);
     }
   }
@@ -52,7 +52,7 @@ const checkNativeSupport = () => {
     nodeList.forEach(img => swapAttributes(img));
   } else {
   
-    window.addEventListener('scroll', () => debounce(imageObserver(nodeList), 200), {capture: false, passive: true});
+    window.addEventListener('scroll', () => debounce(() => imageObserver(nodeList), 200), {capture: false, passive: true});
     
     imageObserver(nodeList);
   }
@@ -63,6 +63,8 @@ const LazyImage = async (): Promise<void> => await new Promise((resolve) => {
   if (!/complete|interactive|loaded/.test(document.readyState)) {
 
     window.addEventListener('DOMContentLoaded', () => resolve(checkNativeSupport()), false);
+
+    return;
   }
 
   resolve(checkNativeSupport());
